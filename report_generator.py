@@ -42,9 +42,9 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
     cat_badges = ""
     for cat, items in grouped.items():
         cat_badges += f"""
-        <div style="background: #f1f5f9; padding: 10px 14px; border-radius: 8px; margin: 4px; display: inline-block;">
-            <strong style="color: #334155; font-size: 13px;">{cat}:</strong> 
-            <span style="color: #6366f1; font-weight: bold; font-size: 14px;">{len(items)}</span>
+        <div style="background: #ffffff; border: 1px solid #fed7aa; padding: 10px 14px; border-radius: 8px; margin: 4px; display: inline-block;">
+            <strong style="color: #431407; font-size: 13px;">{cat}:</strong> 
+            <span style="color: #FF5E14; font-weight: bold; font-size: 14px;">{len(items)}</span>
         </div>
         """
 
@@ -112,12 +112,12 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
                         <td style="vertical-align: top;">
                             <div style="font-size: 16px; font-weight: bold; color: #0f172a;">
                                 {name}
-                                <span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 6px;">{seniority}</span>
+                                <span style="background: #fff3ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 6px;">{seniority}</span>
                                 <span style="color: #64748b; font-size: 12px; font-weight: normal; margin-left: 6px;">📍 {city} | ⏳ {experience}</span>
                             </div>
                         </td>
                         <td style="text-align: right; vertical-align: top; white-space: nowrap;">
-                            <a href="{preview_url}" target="_blank" style="background: #6366f1; color: #ffffff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block;">
+                            <a href="{preview_url}" target="_blank" style="background: #FF5E14; color: #ffffff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block;">
                                 👁️ CV'yi Önizle
                             </a>
                             {portfolio_btn}
@@ -125,7 +125,7 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
                     </tr>
                 </table>
 
-                <div style="margin-top: 10px; font-size: 13.5px; color: #334155; line-height: 1.5; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid #6366f1;">
+                <div style="margin-top: 10px; font-size: 13.5px; color: #334155; line-height: 1.5; background: #fffaf7; padding: 10px; border-radius: 6px; border-left: 3px solid #FF5E14;">
                     <strong>AI Yönetici Değerlendirmesi:</strong> {summary}
                 </div>
                 {pros_html}
@@ -145,7 +145,7 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
         categories_html += f"""
         <div style="margin-top: 24px;">
             <h3 style="color: #1e293b; font-size: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
-                📁 {cat} <span style="color: #6366f1; font-size: 13px;">({len(items)} Başvuru)</span>
+                📁 {cat} <span style="color: #FF5E14; font-size: 13px;">({len(items)} Başvuru)</span>
             </h3>
             {cards_html}
         </div>
@@ -158,18 +158,18 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
         <meta charset="utf-8">
         <title>Haftalık CV & Yetenek Bülteni</title>
     </head>
-    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px; color: #1e293b;">
-        <div style="max-width: 780px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+        <div style="max-width: 780px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 28px 24px; color: white;">
-                <div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.9; font-weight: 600;">NABULU CREATIVE AGENCY</div>
-                <h1 style="margin: 6px 0 4px 0; font-size: 22px; font-weight: 700;">Haftalık CV & Yetenek Bülteni</h1>
-                <p style="margin: 0; font-size: 13px; opacity: 0.85;">{period_title} dönemi gelen başvuruların AI destekli analizi ve yönetici özeti.</p>
+            <div style="background: linear-gradient(135deg, #FF5E14, #FF8A00); padding: 28px 24px; color: white;">
+                <div style="font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.95; font-weight: 800;">NABULU - IK</div>
+                <h1 style="margin: 6px 0 4px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Haftalık CV & Yetenek Bülteni</h1>
+                <p style="margin: 0; font-size: 13.5px; opacity: 0.9;">{period_title} dönemi gelen başvuruların AI destekli analizi ve yönetici özeti.</p>
             </div>
 
             <!-- Dashboard Stats -->
-            <div style="padding: 20px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">
+            <div style="padding: 20px 24px; background: #fffaf7; border-bottom: 1px solid #fed7aa;">
+                <div style="font-size: 12px; font-weight: bold; color: #9a3412; text-transform: uppercase; margin-bottom: 8px;">
                     📊 Özet Durum (Toplam {total_count} Yeni Aday)
                 </div>
                 <div>

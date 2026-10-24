@@ -27,6 +27,16 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
             self.wfile.write(b"OK")
+        elif path == "preview-report":
+            from report_generator import build_report_html
+            from database import get_unreported_cvs
+            from datetime import datetime
+            cvs = get_unreported_cvs()
+            html = build_report_html(cvs, datetime.now().strftime("%d.%m.%Y") + " Haftası")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(html.encode("utf-8"))
         else:
             self.send_response(404)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -88,7 +98,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{name} - CV Önizleme | Nabulu Ajans</title>
+    <title>{name} - CV Önizleme | Nabulu - İK</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -118,13 +128,13 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             gap: 12px;
         }}
         .brand-logo {{
-            background: linear-gradient(135deg, #6366f1, #a855f7);
+            background: linear-gradient(135deg, #FF5E14, #FF8A00);
             color: white;
-            font-weight: 700;
-            padding: 6px 12px;
+            font-weight: 800;
+            padding: 6px 14px;
             border-radius: 8px;
-            font-size: 14px;
-            letter-spacing: 0.5px;
+            font-size: 13px;
+            letter-spacing: 1px;
         }}
         .candidate-title h1 {{
             font-size: 18px;
@@ -149,7 +159,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             font-size: 11px;
             font-weight: 600;
         }}
-        .badge.cat {{ background: #312e81; color: #a5b4fc; border: 1px solid #4338ca; }}
+        .badge.cat {{ background: #431407; color: #fdba74; border: 1px solid #9a3412; }}
         .badge.sen {{ background: #064e3b; color: #6ee7b7; border: 1px solid #047857; }}
         .badge.skill {{ background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }}
         
@@ -170,10 +180,10 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             gap: 6px;
         }}
         .btn-primary {{
-            background: #6366f1;
+            background: #FF5E14;
             color: white;
         }}
-        .btn-primary:hover {{ background: #4f46e5; }}
+        .btn-primary:hover {{ background: #E04D0C; }}
         .btn-outline {{
             background: #334155;
             color: #e2e8f0;
