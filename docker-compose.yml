@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  cv-system:
+    build: .
+    container_name: nabulu-cv-system
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./data:/app/data
+      - ./storage/cvs:/app/storage/cvs
