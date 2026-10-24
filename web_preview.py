@@ -204,7 +204,8 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             overflow: hidden;
         }}
         .sidebar {{
-            width: 380px;
+            width: 440px;
+            min-width: 440px;
             background: #1e293b;
             border-right: 1px solid #334155;
             padding: 24px;
@@ -212,6 +213,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             display: flex;
             flex-direction: column;
             gap: 20px;
+            height: calc(100vh - 73px);
         }}
         .section-title {{
             font-size: 11px;
@@ -302,16 +304,16 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             cursor: pointer;
         }}
         .btn-close:hover {{ color: white; }}
-        @media(max-width: 900px) {{
+        @media(max-width: 768px) {{
             .main-container {{ flex-direction: column; }}
-            .sidebar {{ width: 100%; height: auto; max-height: 40vh; }}
+            .sidebar {{ width: 100%; min-width: 100%; height: auto; max-height: 45vh; }}
         }}
     </style>
 </head>
 <body>
     <div class="header">
         <div class="brand">
-            <div class="brand-logo">NABULU TALENT</div>
+            <div class="brand-logo">NABULU - IK</div>
             <div class="candidate-title">
                 <h1>{name}</h1>
                 <div class="candidate-meta">
@@ -332,6 +334,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
     </div>
     
     <div class="main-container">
+        <div class="sidebar">
             <div>
                 <div class="section-title">✨ AI Değerlendirme & Yönetici Özeti</div>
                 <div class="summary-box">
@@ -339,16 +342,16 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
                 </div>
             </div>
 
-            {f'''<div>
-                <div class="section-title">✉️ Adayın E-posta Ön Yazısı & Notu</div>
-                <div class="summary-box" style="font-style: italic; color: #cbd5e1; border-color: #475569;">
-                    "{cover_letter}"
-                </div>
-            </div>''' if cover_letter else ''}
-
             {pros_html}
 
             {cons_html}
+
+            {f'''<div>
+                <div class="section-title">✉️ Adayın E-posta Ön Yazısı & Notu</div>
+                <div class="summary-box" style="font-style: italic; color: #cbd5e1; border-color: #475569; max-height: 180px; overflow-y: auto;">
+                    "{cover_letter}"
+                </div>
+            </div>''' if cover_letter else ''}
 
             <div>
                 <div class="section-title">🛠️ Öne Çıkan Yetenekler</div>
