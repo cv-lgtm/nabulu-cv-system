@@ -29,9 +29,15 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"OK")
         elif path == "preview-report":
             from report_generator import build_report_html
-            from database import get_unreported_cvs
+            from database import get_unreported_cvs, get_connection
             from datetime import datetime
             cvs = get_unreported_cvs()
+            if not cvs:
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM cv_records ORDER BY id DESC LIMIT 10")
+                cvs = [dict(row) for row in cursor.fetchall()]
+                conn.close()
             html = build_report_html(cvs, datetime.now().strftime("%d.%m.%Y") + " Haftası")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
