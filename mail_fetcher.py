@@ -166,6 +166,7 @@ def fetch_and_process_emails() -> int:
                     "key_skills": analysis.get("key_skills", ""),
                     "pros": analysis.get("pros", ""),
                     "cons": analysis.get("cons", ""),
+                    "cover_letter": body_text.strip()[:2000],
                     "summary": analysis.get("summary", ""),
                     "portfolio_links": analysis.get("portfolio_links", ""),
                     "file_name": original_filename,

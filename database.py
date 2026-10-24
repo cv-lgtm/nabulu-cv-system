@@ -35,6 +35,7 @@ def init_db():
             preview_token TEXT UNIQUE,
             pros TEXT,
             cons TEXT,
+            cover_letter TEXT,
             status TEXT DEFAULT 'processed',
             reported INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -48,6 +49,10 @@ def init_db():
         pass
     try:
         cursor.execute("ALTER TABLE cv_records ADD COLUMN cons TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE cv_records ADD COLUMN cover_letter TEXT")
     except Exception:
         pass
 
@@ -83,12 +88,12 @@ def save_cv_record(record: Dict[str, Any]) -> int:
             message_id, sender_email, sender_name, subject, received_date,
             candidate_name, candidate_email, candidate_phone, candidate_city,
             category, seniority, experience_years, key_skills, summary,
-            portfolio_links, file_name, file_path, preview_token, pros, cons, status, reported
+            portfolio_links, file_name, file_path, preview_token, pros, cons, cover_letter, status, reported
         ) VALUES (
             :message_id, :sender_email, :sender_name, :subject, :received_date,
             :candidate_name, :candidate_email, :candidate_phone, :candidate_city,
             :category, :seniority, :experience_years, :key_skills, :summary,
-            :portfolio_links, :file_name, :file_path, :preview_token, :pros, :cons, :status, 0
+            :portfolio_links, :file_name, :file_path, :preview_token, :pros, :cons, :cover_letter, :status, 0
         )
     """, {
         "message_id": record.get("message_id"),
@@ -111,6 +116,7 @@ def save_cv_record(record: Dict[str, Any]) -> int:
         "preview_token": preview_token,
         "pros": record.get("pros") or "",
         "cons": record.get("cons") or "",
+        "cover_letter": record.get("cover_letter") or "",
         "status": record.get("status", "processed")
     })
     rec_id = cursor.lastrowid

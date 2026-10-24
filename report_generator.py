@@ -60,12 +60,25 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
             skills = cv.get("key_skills") or ""
             pros = cv.get("pros") or ""
             cons = cv.get("cons") or ""
+            cover_letter = (cv.get("cover_letter") or "").strip()
             summary = cv.get("summary") or "Özet bulunamadı."
             email = cv.get("candidate_email") or ""
             phone = cv.get("candidate_phone") or ""
             portfolio = cv.get("portfolio_links") or ""
             token = cv.get("preview_token")
             preview_url = f"{PREVIEW_BASE_URL}/preview/{token}"
+
+            cover_letter_html = ""
+            if cover_letter:
+                clean_letter = cover_letter.replace("\n", " ").strip()
+                if len(clean_letter) > 350:
+                    clean_letter = clean_letter[:350] + "..."
+                cover_letter_html = f"""
+                <div style="background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 4px; padding: 8px 12px; margin-top: 8px; font-size: 12.5px; color: #475569;">
+                    <div style="font-weight: bold; color: #334155; font-size: 11.5px; text-transform: uppercase; margin-bottom: 2px;">✉️ Adayın E-posta Ön Yazısı & Notu:</div>
+                    <span style="font-style: italic;">"{clean_letter}"</span>
+                </div>
+                """
 
             pros_html = ""
             if pros:
@@ -128,6 +141,7 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
                 <div style="margin-top: 10px; font-size: 13.5px; color: #334155; line-height: 1.5; background: #fffaf7; padding: 10px; border-radius: 6px; border-left: 3px solid #FF5E14;">
                     <strong>AI Yönetici Değerlendirmesi:</strong> {summary}
                 </div>
+                {cover_letter_html}
                 {pros_html}
                 {cons_html}
 

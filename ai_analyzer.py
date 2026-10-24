@@ -60,7 +60,8 @@ GÖREVLERİN:
 6. Portfolyo linkleri (Behance, Dribbble, GitHub, Vimeo, Kişisel Site, LinkedIn vb.).
 7. GÜÇLÜ YÖNLER / ARTILARI (pros): Adayın belirgin 2-3 güçlü yönü (ajans geçmişi, araç hakimiyeti, başarılar vb.).
 8. DİKKAT EDİLMESİ GEREKENLER / EKSİLERİ (cons): Adayın 1-3 belirgin eksiği veya soru işareti (Örn: sık iş değiştirme, portfolyo sunulmaması, ajans tecrübesi eksikliği, araçların yüzeysel kalması, rol için fazla/az deneyim vb.).
-9. YÖNETİCİ ÖZETİ (summary): Hem artıları hem eksileri tartan, adayın ajansa uygunluğunu net bir dille özetleyen 2-3 cümlelik objektif yönetici değerlendirmesi.
+9. ADAYIN ÖN YAZI / MAİL NOTLARI (candidate_notes): E-posta gövdesinde adayın belirttiği özel detaylar varsa (Örn: Maaş beklentisi, ne zaman başlayabileceği/ihbar süresi, neden Nabulu'yu tercih ettiği, çalışma modeli tercihi vb.). Yoksa boş bırak.
+10. YÖNETİCİ ÖZETİ (summary): Hem artıları hem eksileri tartan, adayın ajansa uygunluğunu net bir dille özetleyen 2-3 cümlelik objektif yönetici değerlendirmesi.
 
 YANIT FORMATI:
 Aşağıdaki JSON şemasına kesinlikle sadık kal. Sadece saf JSON döndür, markdown formatında tırnak işareti (```json) kullanma.
@@ -76,6 +77,7 @@ Aşağıdaki JSON şemasına kesinlikle sadık kal. Sadece saf JSON döndür, ma
   "key_skills": ["Yetenek 1", "Yetenek 2"],
   "pros": ["Artı yön 1", "Artı yön 2"],
   "cons": ["Eksi/risk yön 1", "Eksi/risk yön 2"],
+  "candidate_notes": "Adayın mailinde belirttiği başlangıç tarihi, motivasyon, maaş beklentisi vb. notlar.",
   "summary": "Hem artıları hem eksileri içeren 2-3 cümlelik dengeli yönetici özeti.",
   "portfolio_links": ["https://..."]
 }}

@@ -60,6 +60,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
         summary = cv.get("summary", "")
         pros = cv.get("pros", "")
         cons = cv.get("cons", "")
+        cover_letter = cv.get("cover_letter", "")
         email = cv.get("candidate_email", "")
         phone = cv.get("candidate_phone", "")
         city = cv.get("candidate_city", "")
@@ -281,13 +282,19 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
     </div>
     
     <div class="main-container">
-        <div class="sidebar">
             <div>
                 <div class="section-title">✨ AI Değerlendirme & Yönetici Özeti</div>
                 <div class="summary-box">
                     {summary or 'Bu aday için özet oluşturulamadı.'}
                 </div>
             </div>
+
+            {f'''<div>
+                <div class="section-title">✉️ Adayın E-posta Ön Yazısı & Notu</div>
+                <div class="summary-box" style="font-style: italic; color: #cbd5e1; border-color: #475569;">
+                    "{cover_letter}"
+                </div>
+            </div>''' if cover_letter else ''}
 
             {pros_html}
 
