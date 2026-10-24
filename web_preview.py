@@ -100,6 +100,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             for l in links:
                 portfolio_html += f'<a href="{l}" target="_blank" class="btn btn-outline">🔗 Portfolyo / Link</a> '
 
+        formatted_letter = cover_letter.replace("\r\n", "<br>").replace("\n", "<br>")
         html = f"""<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -259,6 +260,48 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             height: 100%;
             border: none;
         }}
+        .modal-overlay {{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }}
+        .modal-content {{
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 650px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+        }}
+        .modal-header {{
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .modal-body {{
+            padding: 20px;
+            overflow-y: auto;
+            line-height: 1.7;
+            font-size: 14px;
+            color: #e2e8f0;
+        }}
+        .btn-close {{
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+        }}
+        .btn-close:hover {{ color: white; }}
         @media(max-width: 900px) {{
             .main-container {{ flex-direction: column; }}
             .sidebar {{ width: 100%; height: auto; max-height: 40vh; }}
@@ -280,6 +323,7 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             </div>
         </div>
         <div class="actions">
+            {f'<button onclick="openLetterModal()" class="btn btn-outline">✉️ Ön Yazıyı Oku</button>' if cover_letter else ''}
             {portfolio_html}
             {f'<a href="mailto:{email}" class="btn btn-outline">✉️ E-posta</a>' if email else ''}
             {f'<a href="tel:{phone}" class="btn btn-outline">📞 Ara</a>' if phone else ''}
@@ -340,6 +384,33 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             <iframe src="/raw/{token}#toolbar=1" type="application/pdf"></iframe>
         </div>
     </div>
+
+    <!-- Ön Yazı Modal -->
+    <div id="letterModal" class="modal-overlay" onclick="if(event.target === this) closeLetterModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 15px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                    ✉️ {name} - E-posta Ön Yazısı & Notları
+                </h3>
+                <button class="btn-close" onclick="closeLetterModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                {formatted_letter}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openLetterModal() {{
+            document.getElementById('letterModal').style.display = 'flex';
+        }}
+        function closeLetterModal() {{
+            document.getElementById('letterModal').style.display = 'none';
+        }}
+        document.addEventListener('keydown', function(e) {{
+            if (e.key === 'Escape') closeLetterModal();
+        }});
+    </script>
 </body>
 </html>"""
 

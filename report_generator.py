@@ -70,13 +70,15 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
 
             cover_letter_html = ""
             if cover_letter:
-                clean_letter = cover_letter.replace("\n", " ").strip()
-                if len(clean_letter) > 350:
-                    clean_letter = clean_letter[:350] + "..."
+                formatted_letter = cover_letter.replace("\r\n", "<br>").replace("\n", "<br>").strip()
                 cover_letter_html = f"""
-                <div style="background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 4px; padding: 8px 12px; margin-top: 8px; font-size: 12.5px; color: #475569;">
-                    <div style="font-weight: bold; color: #334155; font-size: 11.5px; text-transform: uppercase; margin-bottom: 2px;">✉️ Adayın E-posta Ön Yazısı & Notu:</div>
-                    <span style="font-style: italic;">"{clean_letter}"</span>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #f97316; border-radius: 6px; padding: 12px 14px; margin-top: 10px; font-size: 12.5px; line-height: 1.6; color: #334155;">
+                    <div style="font-weight: 700; color: #ea580c; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                        ✉️ Adayın E-posta Ön Yazısı & Notu (Tam Metin):
+                    </div>
+                    <div style="max-height: 220px; overflow-y: auto; color: #475569; font-style: normal; padding-right: 4px;">
+                        {formatted_letter}
+                    </div>
                 </div>
                 """
 
