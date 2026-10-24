@@ -159,6 +159,12 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
         <title>Haftalık CV & Yetenek Bülteni</title>
     </head>
     <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+        <!-- Gmail Preheader & Threading engelleme -->
+        <div style="display:none; font-size:1px; color:#f8fafc; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
+            NABULU - İK Haftalık Yetenek Bülteni: {total_count} yeni başvuru analiz edildi. ({datetime.now().strftime('%H:%M:%S')})
+            &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+        </div>
+
         <div style="max-width: 780px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #FF5E14, #FF8A00); padding: 28px 24px; color: white;">
@@ -212,7 +218,9 @@ def send_weekly_report(force: bool = False) -> bool:
         return False
 
     now_str = datetime.now().strftime("%d.%m.%Y")
-    subject = f"[Haftalık Rapor] CV & Yetenek Bülteni - {now_str} ({len(unreported)} Yeni Başvuru)"
+    # Gmail'in aynı gün atılan mailleri gruplayıp "..." içine gizlemesini (threading) önlemek için benzersiz zaman damgası
+    time_suffix = datetime.now().strftime("%H:%M")
+    subject = f"NABULU - İK | Haftalık CV & Yetenek Bülteni - {now_str} [{time_suffix}] ({len(unreported)} Aday)"
     period_title = f"{now_str} Haftası"
     html_content = build_report_html(unreported, period_title)
 
