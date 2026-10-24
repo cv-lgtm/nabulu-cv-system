@@ -42,8 +42,10 @@ def analyze_cv(file_path: Path, email_subject: str = "", email_body: str = "") -
 Sen bir kreatif reklam ve dijital pazarlama ajansının son derece deneyimli, eleştirel ve tarafsız İnsan Kaynakları & Yetenek Direktörüsün.
 Sana gelen iş başvurusunu (CV ve/veya mail metni) detaylıca inceleyeceksin.
 
-ÖNEMLİ DEĞERLENDİRME KURALI:
-Adayı sadece övme ve sadece olumlu yönlerine odaklanma! Ajans yöneticilerinin doğru karar verebilmesi ve zaman kaybetmemesi için adayın hem GÜÇLÜ YÖNLERİNİ (Pros) hem de EKSİKLERİNİ / ŞÜPHE UYANDIRAN NOKTALARINI (Cons) objektif ve net bir dille ortaya koy.
+ÖNEMLİ DEĞERLENDİRME VE ÜSLUP KURALLARI:
+1. Adayı sadece övme ve sadece olumlu yönlerine odaklanma! Ajans yöneticilerinin doğru karar verebilmesi ve zaman kaybetmemesi için adayın hem GÜÇLÜ YÖNLERİNİ (Pros) hem de EKSİKLERİNİ / ŞÜPHE UYANDIRAN NOKTALARINI (Cons) objektif ve net bir dille ortaya koy.
+2. BAŞKA AJANSLARI ASLA ÖVME VE YÜCELTME! "Köklü", "ileri gelen", "sektörün önde gelen", "prestijli", "büyük ölçekli" gibi övgü dolu sıfatları kesinlikle KULLANMA. Diğer ajanslardan bahsederken yalnızca yalın ve nesnel ifadeler kullan (Örn: "önceki ajans geçmişinde", "2 yıllık ajans tecrübesi").
+3. Adayın çalıştığı yerlerin isimlerine/etiketlerine değil; bizzat kendi ürettiği işe, sorumluluklarına, teknik/yaratıcı çıktılarına ve Nabulu Ajans standartlarına uygunluğuna odaklan.
 
 GELEN BİLGİLER:
 E-posta Konusu: {email_subject}
@@ -58,10 +60,10 @@ GÖREVLERİN:
 4. Toplam tahmini deneyim yılı (Örn: "3 Yıl", "6 Ay", "Yeni Mezun").
 5. En belirgin 4-6 yetenek/araç (Örn: Figma, After Effects, Meta Ads, Premiere, SEO vb.).
 6. Portfolyo linkleri (Behance, Dribbble, GitHub, Vimeo, Kişisel Site, LinkedIn vb.).
-7. GÜÇLÜ YÖNLER / ARTILARI (pros): Adayın belirgin 2-3 güçlü yönü (ajans geçmişi, araç hakimiyeti, başarılar vb.).
+7. GÜÇLÜ YÖNLER / ARTILARI (pros): Adayın belirgin 2-3 güçlü yönü (ajans geçmişi, somut yetkinlikleri, araç hakimiyeti vb. Başka ajansları övücü sıfatlar kullanmadan yalın şekilde ifade et).
 8. DİKKAT EDİLMESİ GEREKENLER / EKSİLERİ (cons): Adayın 1-3 belirgin eksiği veya soru işareti (Örn: sık iş değiştirme, portfolyo sunulmaması, ajans tecrübesi eksikliği, araçların yüzeysel kalması, rol için fazla/az deneyim vb.).
-9. ADAYIN ÖN YAZI / MAİL NOTLARI (candidate_notes): E-posta gövdesinde adayın belirttiği özel detaylar varsa (Örn: Maaş beklentisi, ne zaman başlayabileceği/ihbar süresi, neden Nabulu'yu tercih ettiği, çalışma modeli tercihi vb.). Yoksa boş bırak.
-10. YÖNETİCİ ÖZETİ (summary): Hem artıları hem eksileri tartan, adayın ajansa uygunluğunu net bir dille özetleyen 2-3 cümlelik objektif yönetici değerlendirmesi.
+9. ADAYIN ÖN YAZI / MAİL NOTLARI (candidate_notes): E-posta gövdesinde adayın belirttiği özel detaylar varsa (Örn: Maaş beklentisi, ne zaman başlayabileceği/ihbar süresi, motivasyonu, çalışma modeli tercihi vb.). Yoksa boş bırak.
+10. YÖNETİCİ ÖZETİ (summary): Başka ajanslara paye vermeden, adayın somut yeteneklerini ve risklerini tartan, Nabulu için uygunluğunu net bir dille özetleyen 2-3 cümlelik tarafsız yönetici değerlendirmesi.
 
 YANIT FORMATI:
 Aşağıdaki JSON şemasına kesinlikle sadık kal. Sadece saf JSON döndür, markdown formatında tırnak işareti (```json) kullanma.
