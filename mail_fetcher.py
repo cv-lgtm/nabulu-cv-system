@@ -11,9 +11,33 @@ import email
 from email.header import decode_header
 import re
 import uuid
+import zipfile
+import io
+from PIL import Image
 from pathlib import Path
 from datetime import datetime
 from typing import List, Tuple
+
+def handle_attachment_conversion(filename: str, file_bytes: bytes) -> Tuple[str, bytes]:
+    """
+    Apple Pages (.pages) veya gorsel dosyalarini PDF'e cevirir.
+    """
+    suffix = Path(filename).suffix.lower()
+    if suffix == ".pages":
+        try:
+            z = zipfile.ZipFile(io.BytesIO(file_bytes))
+            for candidate in ["preview.jpg", "preview-web.jpg", "QuickLook/Preview.pdf"]:
+                if candidate in z.namelist():
+                    extracted_bytes = z.read(candidate)
+                    if candidate.endswith(".pdf"):
+                        return (Path(filename).stem + ".pdf", extracted_bytes)
+                    img = Image.open(io.BytesIO(extracted_bytes)).convert("RGB")
+                    pdf_buf = io.BytesIO()
+                    img.save(pdf_buf, format="PDF")
+                    return (Path(filename).stem + ".pdf", pdf_buf.getvalue())
+        except Exception as e:
+            print(f"[-] .pages donusturme uyarisi: {e}")
+    return (filename, file_bytes)
 
 from config import (
     GMAIL_USER, GMAIL_APP_PASSWORD, IMAP_SERVER, IMAP_PORT, STORAGE_DIR
@@ -61,9 +85,9 @@ def fetch_and_process_emails() -> int:
     # Okunmamış veya son mailleri tara
     status, messages = mail.search(None, 'UNSEEN')
     if status != 'OK' or not messages[0]:
-        # Eğer okunmamış yoksa, son 10 maile bak (zaten işlenmiş olanları atlayacak)
+        # Eğer okunmamış yoksa, son 50 maile bak (zaten işlenmiş olanları atlayacak)
         status, messages = mail.search(None, 'ALL')
-        msg_ids = messages[0].split()[-15:] if messages[0] else []
+        msg_ids = messages[0].split()[-50:] if messages[0] else []
     else:
         msg_ids = messages[0].split()
 
@@ -122,26 +146,28 @@ def fetch_and_process_emails() -> int:
                 if payload:
                     body_text = payload.decode(msg.get_content_charset() or "utf-8", errors="ignore")
 
-            # CV eklerini filtrele (.pdf, .docx, .doc)
+            # CV eklerini filtrele (.pdf, .docx, .doc, .pages)
             valid_attachments = [
                 (fn, content) for fn, content in attachments
-                if Path(fn).suffix.lower() in [".pdf", ".docx", ".doc"]
+                if Path(fn).suffix.lower() in [".pdf", ".docx", ".doc", ".pages"]
             ]
 
             if not valid_attachments:
-                # CV eki olmayan e-postaları atla
                 continue
 
             for original_filename, file_bytes in valid_attachments:
                 if is_message_processed(message_id, original_filename):
                     continue
 
-                safe_name = sanitize_filename(original_filename)
+                # Apple .pages gibi ozel formatlari PDF'e donustur
+                conv_filename, conv_bytes = handle_attachment_conversion(original_filename, file_bytes)
+
+                safe_name = sanitize_filename(conv_filename)
                 unique_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}_{safe_name}"
                 saved_path = STORAGE_DIR / unique_name
 
                 with open(saved_path, "wb") as f:
-                    f.write(file_bytes)
+                    f.write(conv_bytes)
 
                 print(f"[+] Yeni CV İndirildi: {original_filename} ({sender_name})")
                 print(f"[*] Gemini AI ile analiz ediliyor...")
