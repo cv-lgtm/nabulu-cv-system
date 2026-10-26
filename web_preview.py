@@ -27,6 +27,18 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
             self.wfile.write(b"OK")
+        elif path == "trigger-report":
+            from report_generator import send_weekly_report
+            from config import REPORT_RECIPIENTS
+            success = send_weekly_report(force=True)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            if success:
+                rec_str = ", ".join(REPORT_RECIPIENTS)
+                self.wfile.write(f"<h3>[OK] Haftalik Rapor Basariyla Gonderildi!</h3><p>Alicilar: {rec_str}</p>".encode("utf-8"))
+            else:
+                self.wfile.write(b"<h3>[*] Raporlanacak yeni CV bulunamadi veya gonderilemedi.</h3>")
         elif path == "preview-report":
             from report_generator import build_report_html
             from database import get_unreported_cvs, get_connection
