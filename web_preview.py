@@ -4,7 +4,7 @@ from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import urllib.parse
 from database import get_cv_by_token
-from config import WEB_PREVIEW_HOST, WEB_PREVIEW_PORT
+from config import WEB_PREVIEW_HOST, WEB_PREVIEW_PORT, STORAGE_DIR
 
 class CVPreviewHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -441,8 +441,31 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        file_path = Path(cv.get("file_path", ""))
-        if not file_path.exists():
+        file_path_str = cv.get("file_path", "")
+        file_path = Path(file_path_str) if file_path_str and Path(file_path_str).exists() else None
+        
+        # Windows ve Linux arası dosya yolu uyumluluğu
+        if not file_path:
+            clean_filename = file_path_str.replace('\\', '/').split('/')[-1] if file_path_str else ""
+            if clean_filename:
+                candidate = STORAGE_DIR / clean_filename
+                if candidate.exists():
+                    file_path = candidate
+        if not file_path:
+            orig_name = cv.get("file_name", "")
+            if orig_name:
+                candidate = STORAGE_DIR / orig_name
+                if candidate.exists():
+                    file_path = candidate
+
+        if not file_path or not file_path.exists():
+            # Son çare: Sunucuda dosya henüz yoksa Gmail'den anında indir
+            from mail_fetcher import download_attachment_on_demand
+            fetched = download_attachment_on_demand(cv.get("message_id", ""), cv.get("file_name", ""))
+            if fetched and fetched.exists():
+                file_path = fetched
+
+        if not file_path or not file_path.exists():
             self.send_response(404)
             self.end_headers()
             return

@@ -81,7 +81,15 @@ def is_message_processed(message_id: str, file_name: str = "") -> bool:
 def save_cv_record(record: Dict[str, Any]) -> int:
     conn = get_connection()
     cursor = conn.cursor()
-    preview_token = record.get("preview_token") or str(uuid.uuid4()).replace("-", "")
+    preview_token = record.get("preview_token")
+    if not preview_token:
+        msg_id = record.get("message_id", "")
+        f_name = record.get("file_name", "")
+        if msg_id and f_name:
+            import hashlib
+            preview_token = hashlib.sha256(f"{msg_id}_{f_name}".encode("utf-8")).hexdigest()[:32]
+        else:
+            preview_token = str(uuid.uuid4()).replace("-", "")
     
     cursor.execute("""
         INSERT INTO cv_records (

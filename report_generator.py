@@ -66,7 +66,9 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
             phone = cv.get("candidate_phone") or ""
             portfolio = cv.get("portfolio_links") or ""
             token = cv.get("preview_token")
-            preview_url = f"{PREVIEW_BASE_URL}/preview/{token}"
+            # Güvenlik Kilidi: E-postaya ASLA localhost linki gitmesin, daima canlı Render sunucusunu kullansın!
+            live_base = "https://nabulu-cv.onrender.com" if ("localhost" in PREVIEW_BASE_URL or "127.0.0.1" in PREVIEW_BASE_URL) else PREVIEW_BASE_URL
+            preview_url = f"{live_base}/preview/{token}"
 
             cover_letter_html = ""
             if cover_letter:

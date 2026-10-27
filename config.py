@@ -26,9 +26,12 @@ REPORT_RECIPIENTS = [email.strip() for email in os.getenv("REPORT_RECIPIENTS", "
 # Web Önizleme Sunucusu
 WEB_PREVIEW_HOST = os.getenv("WEB_PREVIEW_HOST", "0.0.0.0")
 WEB_PREVIEW_PORT = int(os.getenv("PORT", os.getenv("WEB_PREVIEW_PORT", "8088")))
-# Render veya Railway üzerinde otomatik atanan public URL desteği
-CLOUD_URL = os.getenv("RENDER_EXTERNAL_URL") or os.getenv("RAILWAY_STATIC_URL")
-PREVIEW_BASE_URL = os.getenv("PREVIEW_BASE_URL", CLOUD_URL or f"http://localhost:{WEB_PREVIEW_PORT}").rstrip("/")
+# Render canlı sunucu URL'si (Asla e-postada localhost gitmemesi için varsayılan)
+DEFAULT_PUBLIC_URL = "https://nabulu-cv.onrender.com"
+CLOUD_URL = os.getenv("RENDER_EXTERNAL_URL") or os.getenv("RAILWAY_STATIC_URL") or DEFAULT_PUBLIC_URL
+PREVIEW_BASE_URL = os.getenv("PREVIEW_BASE_URL", CLOUD_URL).rstrip("/")
+if "localhost" in PREVIEW_BASE_URL or "127.0.0.1" in PREVIEW_BASE_URL:
+    PREVIEW_BASE_URL = DEFAULT_PUBLIC_URL
 
 # Zamanlama
 CHECK_INTERVAL_MINUTES = int(os.getenv("CHECK_INTERVAL_MINUTES", "15"))

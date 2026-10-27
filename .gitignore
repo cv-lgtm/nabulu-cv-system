@@ -10,13 +10,10 @@ __pycache__/
 venv/
 ENV/
 
-# Local databases and downloaded files
-# (Render/Railway'de disk mount veya otomatik çekim kullanılır)
+# Local databases and temporary files
+data/*.db-journal
 storage/cvs/*
 !storage/cvs/.gitkeep
-data/*.db
-data/*.db-journal
-!data/.gitkeep
 
 # IDE & OS
 .vscode/

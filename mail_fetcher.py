@@ -82,14 +82,17 @@ def fetch_and_process_emails() -> int:
 
     mail.select("INBOX")
     
-    # Okunmamış veya son mailleri tara
-    status, messages = mail.search(None, 'UNSEEN')
-    if status != 'OK' or not messages[0]:
-        # Eğer okunmamış yoksa, son 50 maile bak (zaten işlenmiş olanları atlayacak)
-        status, messages = mail.search(None, 'ALL')
-        msg_ids = messages[0].split()[-50:] if messages[0] else []
-    else:
-        msg_ids = messages[0].split()
+    # Okunmamış veya son 50 e-postayı tara (zaten işlenmiş olanları atlayacak)
+    status_unseen, unseen_msgs = mail.search(None, 'UNSEEN')
+    status_all, all_msgs = mail.search(None, 'ALL')
+    
+    id_set = set()
+    if status_unseen == 'OK' and unseen_msgs[0]:
+        id_set.update(unseen_msgs[0].split())
+    if status_all == 'OK' and all_msgs[0]:
+        id_set.update(all_msgs[0].split()[-50:])
+    
+    msg_ids = sorted(list(id_set), key=lambda x: int(x) if x.isdigit() else 0)
 
     if not msg_ids:
         print("[*] İncelenecek yeni e-posta bulunamadı.")
@@ -217,6 +220,59 @@ def fetch_and_process_emails() -> int:
         pass
 
     return processed_count
+
+def download_attachment_on_demand(message_id: str, original_filename: str) -> Optional[Path]:
+    """
+    Eğer sunucu diskinde PDF dosyası bulunamazsa, Gmail'den e-postayı bulup eki anında indirir ve kaydeder.
+    """
+    if not GMAIL_APP_PASSWORD or not message_id:
+        return None
+    try:
+        mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
+        mail.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        mail.select("INBOX")
+        
+        # message_id bazen '_stem' içerir
+        raw_msg_id = message_id.split('_')[0] if '_' in message_id else message_id
+        
+        status, messages = mail.search(None, 'ALL')
+        msg_ids = messages[0].split()[-50:] if (status == 'OK' and messages[0]) else []
+
+        for m_id in reversed(msg_ids):
+            st, data = mail.fetch(m_id, '(RFC822)')
+            if st != 'OK':
+                continue
+            raw_msg = email.message_from_bytes(data[0][1])
+            curr_msg_id = clean_header_str(raw_msg.get("Message-ID", ""))
+            
+            # E-posta eşleşmesi kontrolü (message_id veya attachment filename eşleşmesi)
+            id_matches = raw_msg_id and (raw_msg_id in curr_msg_id or curr_msg_id in raw_msg_id)
+
+            for part in raw_msg.walk():
+                fn = clean_header_str(part.get_filename() or "")
+                if fn and (fn == original_filename or (id_matches and (original_filename in fn or fn in original_filename))):
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        conv_fn, conv_bytes = handle_attachment_conversion(fn, payload)
+                        safe_name = sanitize_filename(conv_fn)
+                        STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+                        save_p = STORAGE_DIR / safe_name
+                        with open(save_p, "wb") as f:
+                            f.write(conv_bytes)
+                        try:
+                            mail.close()
+                            mail.logout()
+                        except Exception:
+                            pass
+                        return save_p
+        try:
+            mail.close()
+            mail.logout()
+        except Exception:
+            pass
+    except Exception as e:
+        print(f"[-] Gmail on-demand download hatası: {e}")
+    return None
 
 if __name__ == "__main__":
     fetch_and_process_emails()
