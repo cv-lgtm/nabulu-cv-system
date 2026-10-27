@@ -33,12 +33,12 @@ def init_db():
             file_name TEXT,
             file_path TEXT,
             preview_token TEXT UNIQUE,
-            pros TEXT,
-            cons TEXT,
-            cover_letter TEXT,
             status TEXT DEFAULT 'processed',
             reported INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            pros TEXT,
+            cons TEXT,
+            cover_letter TEXT
         )
     """)
     
@@ -56,12 +56,24 @@ def init_db():
     except Exception:
         pass
 
-    # Eğer veritabanı boşsa ve seed_data.sql varsa, verileri yükle
+    # Eğer veritabanı boşsa veya eski bozuk şemadan kalma sütun kayması varsa temizle ve seed_data.sql'i yükle
     try:
+        needs_reseed = False
         cursor.execute("SELECT COUNT(*) FROM cv_records")
         count = cursor.fetchone()[0]
+        if count == 0:
+            needs_reseed = True
+        else:
+            cursor.execute("SELECT 1 FROM cv_records WHERE pros = 'processed' LIMIT 1")
+            if cursor.fetchone():
+                print("[*] Sütun sırası kayması tespit edildi, tablo düzeltiliyor...")
+                cursor.execute("DROP TABLE cv_records")
+                conn.commit()
+                conn.close()
+                return init_db()
+
         seed_file = DATA_DIR / "seed_data.sql"
-        if count == 0 and seed_file.exists():
+        if needs_reseed and seed_file.exists():
             conn.executescript(seed_file.read_text(encoding="utf-8"))
             print(f"[+] seed_data.sql basariyla yuklendi.")
     except Exception as e:
