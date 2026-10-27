@@ -19,7 +19,7 @@ from config import (
 )
 from database import get_unreported_cvs, mark_cvs_as_reported
 
-def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
+def build_report_html(cv_list: List[Dict[str, Any]], period_title: str, intro_note: str = "") -> str:
     # Aday bazlı tekilleştirme (aynı aday birden fazla mail atmışsa son kaydı al)
     unique_cvs = {}
     for cv in cv_list:
@@ -31,6 +31,15 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
 
     cv_list = list(unique_cvs.values())
     total_count = len(cv_list)
+
+    intro_note_html = ""
+    if intro_note:
+        intro_note_html = f"""
+        <div style="background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 16px 20px; margin: 20px 24px 0 24px; color: #1e3a8a; font-size: 13.5px; line-height: 1.6;">
+            <strong style="color: #1d4ed8; font-size: 14px; display: block; margin-bottom: 6px;">ℹ️ Bilgilendirme / Düzeltme Notu:</strong>
+            {intro_note}
+        </div>
+        """
     
     # Kategorilere göre grupla
     grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
@@ -190,6 +199,7 @@ def build_report_html(cv_list: List[Dict[str, Any]], period_title: str) -> str:
                 <h1 style="margin: 6px 0 4px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Haftalık CV & Yetenek Bülteni</h1>
                 <p style="margin: 0; font-size: 13.5px; opacity: 0.9;">{period_title} dönemi gelen başvuruların AI destekli analizi ve yönetici özeti.</p>
             </div>
+            {intro_note_html}
 
             <!-- Dashboard Stats -->
             <div style="padding: 20px 24px; background: #fffaf7; border-bottom: 1px solid #fed7aa;">
@@ -265,6 +275,56 @@ def send_weekly_report(force: bool = False) -> bool:
         # Raporlandı olarak işaretle
         ids = [cv["id"] for cv in unreported]
         mark_cvs_as_reported(ids)
+        return True
+    except Exception as e:
+        print(f"[-] Rapor gönderme hatası: {e}")
+        return False
+
+def send_first_week_report(recipients: List[str] = None) -> bool:
+    """
+    1. Haftaya ait 12 adayın bültenini bilgilendirme notuyla birlikte gönderir.
+    """
+    from database import get_connection
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT * FROM cv_records WHERE id < 25 ORDER BY category ASC, id ASC")
+    first_week_cvs = [dict(r) for r in c.fetchall()]
+    conn.close()
+
+    target_recipients = recipients or ["enes@nabulu.com.tr"]
+
+    intro_note = (
+        "İlk hafta iletilen bültendeki 'CV'yi Önizle' butonlarında yaşanan teknik aksaklık (localhost yönlendirmesi) "
+        "giderilmiştir. Adayların özgeçmişlerini, portfolyolarını, ön yazılarını ve AI değerlendirmelerini sorunsuz bir şekilde "
+        "inceleyebilmeniz adına ilk haftanın 12 başvurusu yeniden derlenerek bilginize sunulmuştur. Lütfen önceki rapor yerine bu bülteni dikkate alınız."
+    )
+
+    now_str = datetime.now().strftime("%d.%m.%Y")
+    time_suffix = datetime.now().strftime("%H:%M")
+    subject = f"NABULU - İK | 1. Hafta CV & Yetenek Bülteni [GÜNCELLEME] - {now_str} [{time_suffix}] ({len(first_week_cvs)} Aday)"
+    period_title = "1. Hafta Başvuruları"
+
+    html_content = build_report_html(first_week_cvs, period_title, intro_note=intro_note)
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"Nabulu Talent <{GMAIL_USER}>"
+    msg["To"] = ", ".join(target_recipients)
+
+    msg.attach(MIMEText(html_content, "html", "utf-8"))
+
+    if not GMAIL_APP_PASSWORD or GMAIL_APP_PASSWORD == "Qaz*0987":
+        print("[-] UYARI: E-posta gönderimi için 16 haneli Google Uygulama Şifresi gereklidir.")
+        return False
+
+    try:
+        print(f"[*] 1. Hafta Güncelleme Raporu gönderiliyor: {target_recipients}...")
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        server.sendmail(GMAIL_USER, target_recipients, msg.as_string())
+        server.quit()
+        print(f"[✓] 1. Hafta Güncelleme Raporu başarıyla gönderildi!")
         return True
     except Exception as e:
         print(f"[-] Rapor gönderme hatası: {e}")

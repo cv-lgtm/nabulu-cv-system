@@ -110,20 +110,20 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.wfile.write("<h2>CV Önizleme Bulunamadı</h2><p>İstenen CV kaydı mevcut değil veya silinmiş olabilir.</p>".encode("utf-8"))
             return
 
-        name = cv.get("candidate_name", "Aday")
-        category = cv.get("category", "Genel Başvuru")
-        seniority = cv.get("seniority", "Belirtilmemiş")
-        experience = cv.get("experience_years", "-")
-        skills = cv.get("key_skills", "")
-        summary = cv.get("summary", "")
-        pros = cv.get("pros", "")
-        cons = cv.get("cons", "")
-        cover_letter = cv.get("cover_letter", "")
-        email = cv.get("candidate_email", "")
-        phone = cv.get("candidate_phone", "")
-        city = cv.get("candidate_city", "")
-        portfolio = cv.get("portfolio_links", "")
-        file_name = cv.get("file_name", "cv.pdf")
+        name = cv.get("candidate_name") or "Aday"
+        category = cv.get("category") or "Genel Başvuru"
+        seniority = cv.get("seniority") or "Belirtilmemiş"
+        experience = cv.get("experience_years") or "-"
+        skills = cv.get("key_skills") or ""
+        summary = cv.get("summary") or ""
+        pros = cv.get("pros") or ""
+        cons = cv.get("cons") or ""
+        cover_letter = cv.get("cover_letter") or ""
+        email = cv.get("candidate_email") or ""
+        phone = cv.get("candidate_phone") or ""
+        city = cv.get("candidate_city") or ""
+        portfolio = cv.get("portfolio_links") or ""
+        file_name = cv.get("file_name") or "cv.pdf"
 
         pros_html = ""
         if pros:
