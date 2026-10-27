@@ -10,6 +10,21 @@ from config import (
 from mail_fetcher import fetch_and_process_emails
 from report_generator import send_weekly_report
 
+def weekly_report_job_workflow():
+    """
+    Pazartesi 10:00 tetiklendiğinde:
+    1. Önce Gmail'i anında tarar, son dakikaya kadar gelen CV'leri çeker ve analiz eder.
+    2. Ardından haftalık bülteni derleyip ekibe gönderir.
+    """
+    print("[*] Pazartesi 10:00 görevi başladı: Önce gelen kutusu taranıyor...")
+    try:
+        fetch_and_process_emails()
+    except Exception as e:
+        print(f"[-] Rapor öncesi tarama hatası: {e}")
+    
+    print("[*] Bülten derlenip alıcılara iletiliyor...")
+    send_weekly_report(force=False)
+
 def setup_scheduler():
     scheduler = BackgroundScheduler(timezone=TIMEZONE)
 
@@ -22,9 +37,9 @@ def setup_scheduler():
         replace_existing=True
     )
 
-    # 2. Görev: Her Pazartesi saat 10:00'da (TSİ) haftalık raporu gönder
+    # 2. Görev: Her Pazartesi saat 10:00'da (TSİ) son mailleri çekip haftalık raporu gönder
     scheduler.add_job(
-        send_weekly_report,
+        weekly_report_job_workflow,
         trigger=CronTrigger(
             day_of_week=REPORT_DAY_OF_WEEK,
             hour=REPORT_HOUR,

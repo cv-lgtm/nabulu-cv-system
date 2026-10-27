@@ -28,9 +28,14 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"OK")
         elif path == "trigger-report":
+            from mail_fetcher import fetch_and_process_emails
             from report_generator import send_weekly_report
             from config import REPORT_RECIPIENTS
-            success = send_weekly_report(force=True)
+            try:
+                fetch_and_process_emails()
+            except Exception as e:
+                print(f"[-] Trigger oncesi fetch uyarisi: {e}")
+            success = send_weekly_report(force=False)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
