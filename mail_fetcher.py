@@ -16,7 +16,7 @@ import io
 from PIL import Image
 from pathlib import Path
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 def handle_attachment_conversion(filename: str, file_bytes: bytes) -> Tuple[str, bytes]:
     """
