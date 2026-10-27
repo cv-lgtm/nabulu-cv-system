@@ -475,59 +475,77 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
     def handle_raw_file(self, token: str):
-        cv = get_cv_by_token(token)
-        if not cv:
-            self.send_response(404)
+        try:
+            cv = get_cv_by_token(token)
+            if not cv:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            file_path_str = cv.get("file_path", "")
+            file_path = Path(file_path_str) if file_path_str and Path(file_path_str).exists() else None
+            
+            # Windows ve Linux arası dosya yolu uyumluluğu
+            if not file_path:
+                clean_filename = file_path_str.replace('\\', '/').split('/')[-1] if file_path_str else ""
+                if clean_filename:
+                    candidate = STORAGE_DIR / clean_filename
+                    if candidate.exists():
+                        file_path = candidate
+            if not file_path:
+                orig_name = cv.get("file_name", "")
+                if orig_name:
+                    candidate = STORAGE_DIR / orig_name
+                    if candidate.exists():
+                        file_path = candidate
+                    else:
+                        norm_orig = orig_name.lower().replace(" ", "_")
+                        for f in STORAGE_DIR.glob("*"):
+                            if norm_orig in f.name.lower() or f.name.lower() in norm_orig:
+                                file_path = f
+                                break
+
+            if not file_path or not file_path.exists():
+                # Son çare: Sunucuda dosya henüz yoksa Gmail'den doğrudan ve hızla indir
+                from mail_fetcher import download_attachment_on_demand
+                fetched = download_attachment_on_demand(
+                    message_id=cv.get("message_id", ""),
+                    original_filename=cv.get("file_name", ""),
+                    sender_email=cv.get("sender_email", "")
+                )
+                if fetched and fetched.exists():
+                    file_path = fetched
+
+            if not file_path or not file_path.exists():
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            if not mime_type:
+                mime_type = "application/pdf"
+
+            file_size = file_path.stat().st_size
+            self.send_response(200)
+            self.send_header("Content-Type", mime_type)
+            self.send_header("Content-Length", str(file_size))
+            
+            # RFC 5987 standardında header (ş, ı, ğ gibi Türkçe karakterler HTTP header'ını çökertmez)
+            ascii_name = file_path.name.encode('ascii', 'ignore').decode('ascii').strip() or "cv.pdf"
+            encoded_name = urllib.parse.quote(file_path.name)
+            self.send_header("Content-Disposition", f'inline; filename="{ascii_name}"; filename*=UTF-8\'\'{encoded_name}')
             self.end_headers()
-            return
 
-        file_path_str = cv.get("file_path", "")
-        file_path = Path(file_path_str) if file_path_str and Path(file_path_str).exists() else None
-        
-        # Windows ve Linux arası dosya yolu uyumluluğu
-        if not file_path:
-            clean_filename = file_path_str.replace('\\', '/').split('/')[-1] if file_path_str else ""
-            if clean_filename:
-                candidate = STORAGE_DIR / clean_filename
-                if candidate.exists():
-                    file_path = candidate
-        if not file_path:
-            orig_name = cv.get("file_name", "")
-            if orig_name:
-                candidate = STORAGE_DIR / orig_name
-                if candidate.exists():
-                    file_path = candidate
-
-        if not file_path or not file_path.exists():
-            # Son çare: Sunucuda dosya henüz yoksa Gmail'den doğrudan ve hızla indir
-            from mail_fetcher import download_attachment_on_demand
-            fetched = download_attachment_on_demand(
-                message_id=cv.get("message_id", ""),
-                original_filename=cv.get("file_name", ""),
-                sender_email=cv.get("sender_email", "")
-            )
-            if fetched and fetched.exists():
-                file_path = fetched
-
-        if not file_path or not file_path.exists():
-            self.send_response(404)
-            self.end_headers()
-            return
-
-        mime_type, _ = mimetypes.guess_type(str(file_path))
-        if not mime_type:
-            mime_type = "application/pdf"
-
-        file_size = file_path.stat().st_size
-        self.send_response(200)
-        self.send_header("Content-Type", mime_type)
-        self.send_header("Content-Length", str(file_size))
-        self.send_header("Content-Disposition", f'inline; filename="{file_path.name}"')
-        self.end_headers()
-
-        with open(file_path, "rb") as f:
-            while chunk := f.read(65536):
-                self.wfile.write(chunk)
+            with open(file_path, "rb") as f:
+                while chunk := f.read(65536):
+                    self.wfile.write(chunk)
+        except Exception as e:
+            print(f"[-] handle_raw_file hatası: {e}")
+            try:
+                self.send_response(500)
+                self.end_headers()
+            except Exception:
+                pass
 
 def run_preview_server(host=WEB_PREVIEW_HOST, port=WEB_PREVIEW_PORT):
     server = ThreadingHTTPServer((host, port), CVPreviewHandler)
