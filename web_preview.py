@@ -499,9 +499,13 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
                     file_path = candidate
 
         if not file_path or not file_path.exists():
-            # Son çare: Sunucuda dosya henüz yoksa Gmail'den anında indir
+            # Son çare: Sunucuda dosya henüz yoksa Gmail'den doğrudan ve hızla indir
             from mail_fetcher import download_attachment_on_demand
-            fetched = download_attachment_on_demand(cv.get("message_id", ""), cv.get("file_name", ""))
+            fetched = download_attachment_on_demand(
+                message_id=cv.get("message_id", ""),
+                original_filename=cv.get("file_name", ""),
+                sender_email=cv.get("sender_email", "")
+            )
             if fetched and fetched.exists():
                 file_path = fetched
 

@@ -221,36 +221,48 @@ def fetch_and_process_emails() -> int:
 
     return processed_count
 
-def download_attachment_on_demand(message_id: str, original_filename: str) -> Optional[Path]:
+def download_attachment_on_demand(message_id: str, original_filename: str, sender_email: str = "") -> Optional[Path]:
     """
-    Eğer sunucu diskinde PDF dosyası bulunamazsa, Gmail'den e-postayı bulup eki anında indirir ve kaydeder.
+    Eğer sunucu diskinde PDF dosyası bulunamazsa, Gmail'den e-postayı doğrudan ve hızla bulup eki indirir.
     """
-    if not GMAIL_APP_PASSWORD or not message_id:
+    if not GMAIL_APP_PASSWORD:
         return None
     try:
         mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
         mail.login(GMAIL_USER, GMAIL_APP_PASSWORD)
         mail.select("INBOX")
         
-        # message_id bazen '_stem' içerir
-        raw_msg_id = message_id.split('_')[0] if '_' in message_id else message_id
-        
-        status, messages = mail.search(None, 'ALL')
-        msg_ids = messages[0].split()[-50:] if (status == 'OK' and messages[0]) else []
+        msg_ids = []
+        # 1. Doğrudan ve en hızlı arama: Gönderen e-postasına göre (0.2 saniye!)
+        if sender_email:
+            st, data = mail.search(None, f'(FROM "{sender_email}")')
+            if st == 'OK' and data[0]:
+                msg_ids = data[0].split()
+
+        # 2. Gönderen adresinden bulunamazsa HEADER Message-ID ile ara
+        if not msg_ids and message_id:
+            raw_msg_id = message_id.split('_')[0] if '_' in message_id else message_id
+            st, data = mail.search(None, f'HEADER Message-ID "{raw_msg_id}"')
+            if st == 'OK' and data[0]:
+                msg_ids = data[0].split()
+
+        # 3. Yalnızca son çare olarak son 10 maile bak
+        if not msg_ids:
+            st, data = mail.search(None, 'ALL')
+            if st == 'OK' and data[0]:
+                msg_ids = data[0].split()[-10:]
 
         for m_id in reversed(msg_ids):
             st, data = mail.fetch(m_id, '(RFC822)')
             if st != 'OK':
                 continue
             raw_msg = email.message_from_bytes(data[0][1])
-            curr_msg_id = clean_header_str(raw_msg.get("Message-ID", ""))
-            
-            # E-posta eşleşmesi kontrolü (message_id veya attachment filename eşleşmesi)
-            id_matches = raw_msg_id and (raw_msg_id in curr_msg_id or curr_msg_id in raw_msg_id)
 
             for part in raw_msg.walk():
                 fn = clean_header_str(part.get_filename() or "")
-                if fn and (fn == original_filename or (id_matches and (original_filename in fn or fn in original_filename))):
+                norm_fn = fn.lower().replace(" ", "_")
+                norm_orig = original_filename.lower().replace(" ", "_")
+                if fn and (fn == original_filename or norm_fn in norm_orig or norm_orig in norm_fn):
                     payload = part.get_payload(decode=True)
                     if payload:
                         conv_fn, conv_bytes = handle_attachment_conversion(fn, payload)
@@ -273,6 +285,40 @@ def download_attachment_on_demand(message_id: str, original_filename: str) -> Op
     except Exception as e:
         print(f"[-] Gmail on-demand download hatası: {e}")
     return None
+
+def sync_missing_attachments_in_background():
+    """
+    Arka planda çalışır; veritabanındaki kayıtların diskte henüz bulunmayan PDF'lerini
+    Gmail'den sessizce indirip STORAGE_DIR'e önbelleğe alır.
+    """
+    import threading
+    def _worker():
+        try:
+            from database import get_connection
+            conn = get_connection()
+            c = conn.cursor()
+            c.execute("SELECT id, message_id, sender_email, file_name, file_path FROM cv_records")
+            records = [dict(r) for r in c.fetchall()]
+            conn.close()
+
+            for rec in records:
+                f_path = Path(rec.get("file_path", ""))
+                clean_name = f_path.name if f_path else rec.get("file_name", "")
+                target = STORAGE_DIR / clean_name
+                if not target.exists() and not (f_path and f_path.exists()):
+                    try:
+                        download_attachment_on_demand(
+                            message_id=rec.get("message_id", ""),
+                            original_filename=rec.get("file_name", ""),
+                            sender_email=rec.get("sender_email", "")
+                        )
+                    except Exception:
+                        pass
+        except Exception as e:
+            print(f"[-] Arka plan ek eşitleme uyarısı: {e}")
+
+    t = threading.Thread(target=_worker, daemon=True)
+    t.start()
 
 if __name__ == "__main__":
     fetch_and_process_emails()

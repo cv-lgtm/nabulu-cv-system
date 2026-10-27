@@ -70,6 +70,10 @@ def main():
     preview_thread = threading.Thread(target=run_preview_server, daemon=True)
     preview_thread.start()
 
+    # Eksik PDF dosyalarını arka planda önbelleğe al
+    from mail_fetcher import sync_missing_attachments_in_background
+    sync_missing_attachments_in_background()
+
     # 2. Zamanlayıcıyı başlat
     scheduler = setup_scheduler()
     scheduler.start()
