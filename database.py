@@ -2,7 +2,7 @@ import sqlite3
 import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-from config import DB_PATH
+from config import DB_PATH, DATA_DIR
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -55,6 +55,17 @@ def init_db():
         cursor.execute("ALTER TABLE cv_records ADD COLUMN cover_letter TEXT")
     except Exception:
         pass
+
+    # Eğer veritabanı boşsa ve seed_data.sql varsa, verileri yükle
+    try:
+        cursor.execute("SELECT COUNT(*) FROM cv_records")
+        count = cursor.fetchone()[0]
+        seed_file = DATA_DIR / "seed_data.sql"
+        if count == 0 and seed_file.exists():
+            conn.executescript(seed_file.read_text(encoding="utf-8"))
+            print(f"[+] seed_data.sql basariyla yuklendi.")
+    except Exception as e:
+        print(f"[-] Seed veri yukleme hatasi: {e}")
 
     conn.commit()
     conn.close()

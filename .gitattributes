@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.db binary
+*.pdf binary
+*.sql text eol=lf

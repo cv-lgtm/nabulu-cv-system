@@ -11,6 +11,7 @@ venv/
 ENV/
 
 # Local databases and temporary files
+data/*.db
 data/*.db-journal
 storage/cvs/*
 !storage/cvs/.gitkeep

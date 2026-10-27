@@ -39,6 +39,46 @@ class CVPreviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(f"<h3>[OK] Haftalik Rapor Basariyla Gonderildi!</h3><p>Alicilar: {rec_str}</p>".encode("utf-8"))
             else:
                 self.wfile.write(b"<h3>[*] Raporlanacak yeni CV bulunamadi veya gonderilemedi.</h3>")
+        elif path == "api/status":
+            import json
+            from database import get_connection
+            from config import DB_PATH, DATA_DIR, STORAGE_DIR, GMAIL_USER, GMAIL_APP_PASSWORD, GEMINI_API_KEY
+            status_data = {
+                "db_path": str(DB_PATH),
+                "db_exists": DB_PATH.exists(),
+                "db_size": DB_PATH.stat().st_size if DB_PATH.exists() else 0,
+                "data_files": [f.name for f in DATA_DIR.glob("*")] if DATA_DIR.exists() else [],
+                "storage_count": len(list(STORAGE_DIR.glob("*"))) if STORAGE_DIR.exists() else 0,
+                "gmail_user": GMAIL_USER,
+                "has_gmail_pw": bool(GMAIL_APP_PASSWORD and GMAIL_APP_PASSWORD != "Qaz*0987"),
+                "has_gemini_key": bool(GEMINI_API_KEY),
+            }
+            try:
+                conn = get_connection()
+                c = conn.cursor()
+                c.execute("SELECT COUNT(*) FROM cv_records")
+                status_data["record_count"] = c.fetchone()[0]
+                c.execute("SELECT id, candidate_name, preview_token FROM cv_records ORDER BY id DESC LIMIT 5")
+                status_data["sample_records"] = [dict(r) for r in c.fetchall()]
+                conn.close()
+            except Exception as e:
+                status_data["db_error"] = str(e)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(status_data, indent=2).encode("utf-8"))
+        elif path == "trigger-fetch":
+            from mail_fetcher import fetch_and_process_emails
+            try:
+                count = fetch_and_process_emails()
+                msg = f"Fetch tamamlandi. Islenen yeni CV: {count}"
+            except Exception as e:
+                msg = f"Fetch hatasi: {e}"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(msg.encode("utf-8"))
         elif path == "preview-report":
             from report_generator import build_report_html
             from database import get_unreported_cvs, get_connection
