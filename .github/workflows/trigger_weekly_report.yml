@@ -1,0 +1,38 @@
+name: Trigger Weekly CV Report & Wake Up Render
+
+on:
+  schedule:
+    # Her Pazartesi saat 10:00 (TSİ / UTC+3) -> 07:00 UTC
+    - cron: '0 7 * * 1'
+  workflow_dispatch: # GitHub arayüzünden manuel olarak "Run workflow" ile de tetiklenebilir
+
+jobs:
+  trigger_report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up Render & Trigger Weekly CV Report
+        run: |
+          echo "============================================="
+          echo "🚀 Render uyandırılıyor ve Haftalık CV Raporu tetikleniyor..."
+          echo "Zaman (UTC): $(date -u)"
+          echo "Hedef URL: https://nabulu-cv.onrender.com/trigger-report"
+          echo "============================================="
+          
+          # Render uyku modundan uyanırken ilk istek 30-60 saniye sürebilir, bu yüzden max-time 180s verildi
+          RESPONSE=$(curl -s -L --max-time 180 \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "https://nabulu-cv.onrender.com/trigger-report")
+          
+          HTTP_BODY=$(echo "$RESPONSE" | sed -e '$d')
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1 | cut -d':' -f2)
+          
+          echo "Sunucu Yanıt Kodu: $HTTP_STATUS"
+          echo "Sunucu Yanıtı:"
+          echo "$HTTP_BODY"
+          
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ İşlem Başarılı! Rapor tetiklendi."
+          else
+            echo "❌ Hata! Sunucu beklenmeyen yanıt verdi (HTTP $HTTP_STATUS)."
+            exit 1
+          fi
